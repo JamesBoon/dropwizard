@@ -1,14 +1,15 @@
 package io.dropwizard.core;
 
 import ch.qos.logback.classic.Level;
+import io.dropwizard.core.cli.ArgumentParserOptions;
 import io.dropwizard.core.cli.CheckCommand;
 import io.dropwizard.core.cli.Cli;
+import io.dropwizard.core.cli.DefaultArgumentParserOptions;
 import io.dropwizard.core.cli.ServerCommand;
 import io.dropwizard.core.setup.Bootstrap;
 import io.dropwizard.core.setup.Environment;
 import io.dropwizard.logging.common.BootstrapLogging;
 import io.dropwizard.util.Generics;
-import io.dropwizard.util.JarLocation;
 
 /**
  * The base class for Dropwizard applications.
@@ -36,6 +37,10 @@ public abstract class Application<T extends Configuration> {
     protected void bootstrapLogging() {
         // make sure spinning up Hibernate Validator doesn't yell at us
         BootstrapLogging.bootstrap(bootstrapLogLevel());
+    }
+
+    protected ArgumentParserOptions argumentParserOptions() {
+        return new DefaultArgumentParserOptions(getClass());
     }
 
     /**
@@ -89,7 +94,7 @@ public abstract class Application<T extends Configuration> {
         // Should be called after initialize to give an opportunity to set a custom metric registry
         bootstrap.registerMetrics();
 
-        final Cli cli = new Cli(new JarLocation(getClass()), bootstrap, System.out, System.err);
+        final Cli cli = new Cli(argumentParserOptions(), bootstrap, System.out, System.err);
         // only exit if there's an error running the command
         cli.run(arguments).ifPresent(this::onFatalError);
     }

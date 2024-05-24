@@ -1,7 +1,6 @@
 package io.dropwizard.core.cli;
 
 import io.dropwizard.core.setup.Bootstrap;
-import io.dropwizard.util.JarLocation;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.helper.HelpScreenException;
 import net.sourceforge.argparse4j.impl.Arguments;
@@ -17,6 +16,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.SortedMap;
@@ -42,16 +42,16 @@ public class Cli {
     /**
      * Create a new CLI interface for a application and its bootstrapped environment.
      *
-     * @param location     the location of the application
-     * @param bootstrap    the bootstrap for the application
-     * @param stdOut       standard out
-     * @param stdErr       standard err
+     * @param argumentParserOptions     the location of the application
+     * @param bootstrap                 the bootstrap for the application
+     * @param stdOut                    standard out
+     * @param stdErr                    standard err
      */
-    public Cli(JarLocation location, Bootstrap<?> bootstrap, OutputStream stdOut, OutputStream stdErr) {
+    public Cli(ArgumentParserOptions argumentParserOptions, Bootstrap<?> bootstrap, OutputStream stdOut, OutputStream stdErr) {
         this.stdOut = new PrintWriter(new OutputStreamWriter(stdOut, StandardCharsets.UTF_8), true);
         this.stdErr = new PrintWriter(new OutputStreamWriter(stdErr, StandardCharsets.UTF_8), true);
         this.commands = new TreeMap<>();
-        this.parser = buildParser(location);
+        this.parser = buildParser(argumentParserOptions);
         this.bootstrap = bootstrap;
         for (Command command : bootstrap.getCommands()) {
             addCommand(command);
@@ -104,10 +104,12 @@ public class Cli {
         return false;
     }
 
-    private ArgumentParser buildParser(JarLocation location) {
-        final String usage = "java -jar " + location;
-        final ArgumentParser p = ArgumentParsers.newFor(usage).addHelp(false).build();
-        p.version(location.getVersion().orElse(
+    private ArgumentParser buildParser(ArgumentParserOptions options) {
+        final String usage = "java -jar " + options.getLocation().orElse("project.jar");
+        final ArgumentParser p = ArgumentParsers.newFor(usage)
+            .locale(options.getLocale().orElseGet(Locale::getDefault))
+            .addHelp(false).build();
+        p.version(options.getVersion().orElse(
                 "No application version detected. Add a Implementation-Version " +
                         "entry to your JAR's manifest to enable this."));
         addHelp(p);

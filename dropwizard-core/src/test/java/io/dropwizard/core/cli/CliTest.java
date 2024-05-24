@@ -4,7 +4,6 @@ import io.dropwizard.core.Application;
 import io.dropwizard.core.Configuration;
 import io.dropwizard.core.setup.Bootstrap;
 import io.dropwizard.core.setup.Environment;
-import io.dropwizard.util.JarLocation;
 import net.sourceforge.argparse4j.impl.Arguments;
 import net.sourceforge.argparse4j.inf.Namespace;
 import net.sourceforge.argparse4j.inf.Subparser;
@@ -35,7 +34,7 @@ import static org.mockito.Mockito.when;
 class CliTest {
     private static final Locale DEFAULT_LOCALE = Locale.getDefault();
 
-    private final JarLocation location = mock(JarLocation.class);
+    private final ArgumentParserOptions parserOptions = mock(ArgumentParserOptions.class);
     private final Application<Configuration> app = new Application<Configuration>() {
         @Override
         public void run(Configuration configuration, Environment environment) throws Exception {
@@ -118,14 +117,15 @@ class CliTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        when(location.toString()).thenReturn("dw-thing.jar");
-        when(location.getVersion()).thenReturn(Optional.of("1.0.0"));
+        when(parserOptions.getLocation()).thenReturn(Optional.of("dw-thing.jar"));
+        when(parserOptions.getVersion()).thenReturn(Optional.of("1.0.0"));
+        when(parserOptions.getLocale()).thenReturn(Optional.of(Locale.ENGLISH));
         bootstrap.addCommand(command);
         bootstrap.addCommand(new CustomCommand());
 
         doNothing().when(command).run(any(), any(Namespace.class), any(Configuration.class));
 
-        this.cli = new Cli(location, bootstrap, stdOut, stdErr);
+        this.cli = new Cli(parserOptions, bootstrap, stdOut, stdErr);
     }
 
     @Test
@@ -154,8 +154,8 @@ class CliTest {
 
     @Test
     void handlesMissingVersions() throws Exception {
-        when(location.getVersion()).thenReturn(Optional.empty());
-        final Cli newCli = new Cli(location, bootstrap, stdOut, stdErr);
+        when(parserOptions.getVersion()).thenReturn(Optional.empty());
+        final Cli newCli = new Cli(parserOptions, bootstrap, stdOut, stdErr);
 
         assertThat(newCli.run("--version"))
                 .isEmpty();

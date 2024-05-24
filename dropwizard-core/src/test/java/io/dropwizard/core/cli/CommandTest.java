@@ -4,13 +4,13 @@ import io.dropwizard.core.Application;
 import io.dropwizard.core.Configuration;
 import io.dropwizard.core.setup.Bootstrap;
 import io.dropwizard.core.setup.Environment;
-import io.dropwizard.util.JarLocation;
 import net.sourceforge.argparse4j.inf.Namespace;
 import net.sourceforge.argparse4j.inf.Subparser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
+import java.util.Locale;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,13 +46,14 @@ class CommandTest {
 
     @BeforeEach
     void setUp() {
-        final JarLocation location = mock(JarLocation.class);
+        final ArgumentParserOptions parserOptions = mock(ArgumentParserOptions.class);
         final Bootstrap<Configuration> bootstrap = new Bootstrap<>(app);
-        when(location.toString()).thenReturn("dw-thing.jar");
-        when(location.getVersion()).thenReturn(Optional.of("1.0.0"));
+        when(parserOptions.getLocation()).thenReturn(Optional.of("dw-thing.jar"));
+        when(parserOptions.getVersion()).thenReturn(Optional.of("1.0.0"));
+        when(parserOptions.getLocale()).thenReturn(Optional.of(Locale.ENGLISH));
         bootstrap.addCommand(command);
 
-        cli = new Cli(location, bootstrap, stdOut, stdErr);
+        cli = new Cli(parserOptions, bootstrap, stdOut, stdErr);
     }
 
     @Test

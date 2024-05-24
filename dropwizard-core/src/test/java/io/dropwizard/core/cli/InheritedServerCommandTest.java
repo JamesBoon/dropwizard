@@ -8,7 +8,6 @@ import io.dropwizard.core.server.ServerFactory;
 import io.dropwizard.core.setup.Bootstrap;
 import io.dropwizard.core.setup.Environment;
 import io.dropwizard.logging.common.LoggingFactory;
-import io.dropwizard.util.JarLocation;
 import net.sourceforge.argparse4j.inf.Argument;
 import net.sourceforge.argparse4j.inf.Namespace;
 import net.sourceforge.argparse4j.inf.Subparser;
@@ -17,6 +16,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Locale;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -120,12 +120,13 @@ class InheritedServerCommandTest {
             }
         });
 
-        final JarLocation location = mock(JarLocation.class);
+        final ArgumentParserOptions parserOptions = mock(ArgumentParserOptions.class);
 
-        when(location.toString()).thenReturn("dw-thing.jar");
-        when(location.getVersion()).thenReturn(Optional.of("1.0.0"));
+        when(parserOptions.getLocation()).thenReturn(Optional.of("dw-thing.jar"));
+        when(parserOptions.getVersion()).thenReturn(Optional.of("1.0.0"));
+        when(parserOptions.getLocale()).thenReturn(Optional.of(Locale.ENGLISH));
 
-        Cli cli = new Cli(location, bootstrap, System.out, System.err);
+        Cli cli = new Cli(parserOptions, bootstrap, System.out, System.err);
         cli.run("test");
     }
 }
