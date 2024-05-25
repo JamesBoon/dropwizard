@@ -1,6 +1,7 @@
 package io.dropwizard.core.cli;
 
 import io.dropwizard.core.setup.Bootstrap;
+import io.dropwizard.util.JarLocation;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.helper.HelpScreenException;
 import net.sourceforge.argparse4j.impl.Arguments;
@@ -38,6 +39,21 @@ public class Cli {
     private final SortedMap<String, Command> commands;
     private final Bootstrap<?> bootstrap;
     private final ArgumentParser parser;
+
+    /**
+     * Create a new CLI interface for a application and its bootstrapped environment.
+     *
+     * @param location     the location of the application
+     * @param bootstrap    the bootstrap for the application
+     * @param stdOut       standard out
+     * @param stdErr       standard err
+     *
+     * @deprecated use {@link Cli#Cli(ArgumentParserOptions, Bootstrap, OutputStream, OutputStream)} instead
+     */
+    @Deprecated
+    public Cli(JarLocation location, Bootstrap<?> bootstrap, OutputStream stdOut, OutputStream stdErr) {
+        this(new JarLocationToArgumentParserOptionsWrapper(location), bootstrap, stdOut, stdErr);
+    }
 
     /**
      * Create a new CLI interface for a application and its bootstrapped environment.
@@ -168,6 +184,30 @@ public class Cli {
         @Override
         public void onAttach(Argument arg) {
             // Nothing to do
+        }
+    }
+
+    private static class JarLocationToArgumentParserOptionsWrapper implements ArgumentParserOptions {
+
+        private final JarLocation jarLocation;
+
+        public JarLocationToArgumentParserOptionsWrapper(JarLocation jarLocation) {
+            this.jarLocation = jarLocation;
+        }
+
+        @Override
+        public Optional<String> getVersion() {
+            return jarLocation.getVersion();
+        }
+
+        @Override
+        public Optional<String> getLocation() {
+            return Optional.of(jarLocation.toString());
+        }
+
+        @Override
+        public Optional<Locale> getLocale() {
+            return Optional.empty();
         }
     }
 }
